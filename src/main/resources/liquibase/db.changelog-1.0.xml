@@ -1,0 +1,183 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+
+    <changeSet id="1.0.0" author="zuzex.voronkov">
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="login" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="password" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="first_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="last_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created" type="date">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="date" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.1" author="zuzex.voronkov">
+        <createTable tableName="books">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="title" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="date" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="is_read" type="boolean" defaultValueBoolean="false">
+            </column>
+
+            <column name="created" type="date">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="date">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.2" author="zuzex.voronkov">
+        <createTable tableName="authors">
+
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="created" type="date">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="updated" type="date" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="varchar(25)">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.5" author="zuzex.voronkov">
+        <createTable tableName="users_books">
+            <column name="user_id" type="bigint">
+            </column>
+            <column name="book_id" type="bigint">
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.6" author="zuzex.voronkov">
+        <createTable tableName="books_authors">
+            <column name="book_id" type="bigint">
+            </column>
+            <column name="author_id" type="bigint">
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.7" author="zuzex.voronkov">
+        <createTable tableName="roles">
+
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.9" author="zuzex.voronkov">
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="users_books"
+                                 constraintName="fk_users_books_user"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+    <changeSet id="1.1.0" author="zuzex.voronkov">
+        <addForeignKeyConstraint baseColumnNames="book_id"
+                                 baseTableName="users_books"
+                                 constraintName="fk_users_books_book"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="books"/>
+    </changeSet>
+
+    <changeSet id="1.1.1" author="zuzex.voronkov">
+        <addForeignKeyConstraint baseColumnNames="book_id"
+                                 baseTableName="books_authors"
+                                 constraintName="fk_books_authors_book"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="books"/>
+    </changeSet>
+
+    <changeSet id="1.1.2" author="zuzex.voronkov">
+        <addForeignKeyConstraint baseColumnNames="author_id"
+                                 baseTableName="books_authors"
+                                 constraintName="fk_books_authors_author"
+                                 onDelete="CASCADE"
+                                 onUpdate="RESTRICT"
+                                 referencedColumnNames="id"
+                                 referencedTableName="authors"/>
+    </changeSet>
+
+    <changeSet id="1.1.3" author="zuzex.voronkov">
+        <insert tableName="roles">
+            <column name="name" value="ROLE_USER"/>
+        </insert>
+
+        <insert tableName="roles">
+            <column name="name" value="ROLE_ADMIN"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
