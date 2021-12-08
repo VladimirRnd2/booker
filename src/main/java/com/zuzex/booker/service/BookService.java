@@ -26,7 +26,7 @@ public interface BookService {
 
     List<Book> getBooksByDate(String date);
 
-    BookResponse getBookResponse(BookRequest bookRequest, String token);
+    BookResponse getBookResponse(BookRequest bookRequest);
 
     Book createNewBook(BookResponse bookResponse);
 

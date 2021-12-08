@@ -7,10 +7,8 @@ import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Status;
 import com.zuzex.booker.security.jwt.JwtFilter;
 import com.zuzex.booker.service.BookService;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,14 +17,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +28,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -107,20 +100,26 @@ class BookControllerTest {
     @Test
     void createNewBook() throws Exception {
 
+        BookResponse bookResponse = new BookResponse();
+        bookResponse.setTitle("Abba");
+        bookResponse.setDate("12.12.2020");
+        bookResponse.setAuthors(new ArrayList<>());
+        bookResponse.setToken("newToken");
+
+        when(bookService.createNewBook(any(BookResponse.class))).thenReturn(firstBook);
+        when(bookService.getBookResponse(any(BookRequest.class))).thenReturn(bookResponse);
+
         this.mockMvc.perform(post("/user/book/search")
                 .contentType(MediaType.APPLICATION_JSON)
                 .characterEncoding(StandardCharsets.UTF_8)
-                .content("{\"title\": \"12 стульев\"}")
+                .content("{\"title\": \"Abba\"}")
                 .with(user("vova").roles("USER")))
                 .andDo(print())
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.title").value("Abba"));
 
-        MockHttpServletRequest request = new MockHttpServletRequest();
-
-        when(bookService.createNewBook(any(BookResponse.class))).thenReturn(firstBook);
-
-//        verify(bookService).createNewBook(any(BookResponse.class));
-//        verify(bookService).getBookResponse(any(BookRequest.class), anyString());
+//        verify(bookService).getBookResponse(any(BookRequest.class));
+        verify(bookService).createNewBook(any(BookResponse.class));
     }
 
     @Test
@@ -205,5 +204,18 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
                 .andExpect(jsonPath("$[0].name").value("Duma"));
+    }
+
+    private static RequestPostProcessor setToken(final String token) { // it's nice to extract into a helper
+        return new RequestPostProcessor() {
+
+
+            @Override
+            public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
+                request.setAttribute("Authorization", token);
+
+                return request;
+            }
+        };
     }
 }

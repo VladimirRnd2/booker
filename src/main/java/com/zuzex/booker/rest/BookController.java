@@ -2,6 +2,7 @@ package com.zuzex.booker.rest;
 
 
 import com.zuzex.booker.dto.BookRequest;
+import com.zuzex.booker.dto.BookResponse;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
 import com.zuzex.booker.security.jwt.JwtFilter;
@@ -34,7 +35,9 @@ public class BookController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Book> createNewBook(@RequestBody BookRequest bookRequest, HttpServletRequest request) {
-        Book book = bookService.createNewBook(bookService.getBookResponse(bookRequest, jwtFilter.getTokenFromRequest(request)));
+        BookResponse bookResponse = bookService.getBookResponse(bookRequest);
+        bookResponse.setToken(jwtFilter.getTokenFromRequest(request));
+        Book book = bookService.createNewBook(bookResponse);
         return new ResponseEntity<Book>(book, HttpStatus.CREATED);
     }
 

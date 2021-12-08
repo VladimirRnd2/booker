@@ -90,14 +90,14 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponse getBookResponse(BookRequest bookRequest, String token) {
+    public BookResponse getBookResponse(BookRequest bookRequest) {
         String responseEntity = restTemplate.getForObject(BASE_URL.concat(bookRequest.getTitle()),String.class);
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(BookResponse.class, new BookResponseDeserializer())
                 .create();
         BookResponse bookResponse = gson.fromJson(responseEntity,BookResponse.class);
-        bookResponse.setToken(token);
+//        bookResponse.setToken(token);
         return bookResponse;
     }
 
