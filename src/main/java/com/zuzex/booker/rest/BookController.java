@@ -9,7 +9,9 @@ import com.zuzex.booker.service.BookService;
 import com.zuzex.booker.service.impl.BookServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,8 +33,9 @@ public class BookController {
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Book createNewBook(@RequestBody BookRequest bookRequest, HttpServletRequest request) {
-        return bookService.createNewBook(bookService.getBookResponse(bookRequest, jwtFilter.getTokenFromRequest(request)));
+    public ResponseEntity<Book> createNewBook(@RequestBody BookRequest bookRequest, HttpServletRequest request) {
+        Book book = bookService.createNewBook(bookService.getBookResponse(bookRequest, jwtFilter.getTokenFromRequest(request)));
+        return new ResponseEntity<Book>(book, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)

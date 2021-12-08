@@ -21,7 +21,7 @@ public class JwtProvider implements JwtProv{
 //        Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Calendar cal = Calendar.getInstance(); // creates calendar
         cal.setTime(new Date());
-        cal.add(Calendar.MINUTE, 1);
+        cal.add(Calendar.MINUTE, 30);
         cal.getTime();
         return Jwts.builder()
                 .setSubject(login)
@@ -34,7 +34,7 @@ public class JwtProvider implements JwtProv{
 //        Date date = Date.from(LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
         Calendar cal = Calendar.getInstance(); // creates calendar
         cal.setTime(new Date());
-        cal.add(Calendar.MINUTE, 3);
+        cal.add(Calendar.DAY_OF_YEAR, 1);
         cal.getTime();
         return Jwts.builder()
                 .setSubject(login)

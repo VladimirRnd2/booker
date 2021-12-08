@@ -11,4 +11,10 @@ public class BookRequest {
     @JsonProperty("title")
     private String title;
 
+    public BookRequest(String title) {
+        this.title = title;
+    }
+
+    public BookRequest() {
+    }
 }

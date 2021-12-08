@@ -5,16 +5,20 @@ import com.zuzex.booker.dto.AuthRequest;
 import com.zuzex.booker.dto.AuthResponse;
 import com.zuzex.booker.dto.RegistrationRequest;
 import com.zuzex.booker.model.User;
+import com.zuzex.booker.security.jwt.JwtProv;
 import com.zuzex.booker.security.jwt.JwtProvider;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class AuthController {
@@ -23,7 +27,12 @@ public class AuthController {
     private UserService userService;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private JwtProv jwtProvider;
+
+    @GetMapping(value = "/allusers")
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
 
     @PostMapping("/register")
     public ResponseEntity<User> registerUser(@RequestBody @Valid RegistrationRequest request) {
@@ -39,7 +48,7 @@ public class AuthController {
         user.setLastName(request.getLastName());
 
         userService.saveUser(user);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
     @PostMapping("/auth")

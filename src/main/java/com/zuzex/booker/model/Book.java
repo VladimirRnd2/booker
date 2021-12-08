@@ -29,6 +29,7 @@ public class Book extends BaseEntity{
     @JoinTable(name = "books_authors",
             joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "author_id", referencedColumnName = "id"))
+
     private List<Author> authors;
 
 
