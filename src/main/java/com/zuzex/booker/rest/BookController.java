@@ -79,6 +79,11 @@ public class BookController {
         return bookService.getBookById(id).getAuthors();
     }
 
+    @DeleteMapping(value = "/{id}")
+    public void deleteBook(@PathVariable(name = "id") Long id) {
+        bookService.deleteBookById(id);
+    }
+
 
 
 }

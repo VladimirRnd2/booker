@@ -1,138 +1,248 @@
 package com.zuzex.booker.service.impl;
 
+import com.zuzex.booker.dto.AuthorResponse;
+import com.zuzex.booker.dto.BookRequest;
+import com.zuzex.booker.dto.BookResponse;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Status;
-import com.zuzex.booker.rest.BookController;
-import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeAll;
+import com.zuzex.booker.repository.AuthorRepository;
+import com.zuzex.booker.repository.BookRepository;
+import com.zuzex.booker.service.BookService;
+import com.zuzex.booker.service.UserService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static java.util.Optional.*;
+import static java.util.Optional.ofNullable;
 
-@WebMvcTest(BookController.class)
+
+
+@SpringBootTest
+@ExtendWith(SpringExtension.class)
+
 class BookServiceImplTest {
 
+    private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes?q=";
+
     @Autowired
-    MockMvc mockMvc;
+    private BookService bookService;
 
     @MockBean
-    BookServiceImpl bookService;
+    private BookRepository bookRepository;
 
-    static Book firstBook;
-    static Book secondBook;
-    static Author author;
+    @MockBean
+    private AuthorRepository authorRepository;
 
-    @BeforeAll
-    public static void init() {
-        author = new Author();
-        author.setId(1L);
-        author.setName("Tanos");
-        author.setBooks(null);
-        author.setCreated(new Date());
-        author.setUpdated(new Date());
-        author.setStatus(Status.ACTIVE);
+    @MockBean
+    private RestTemplate restTemplate;
+
+    @MockBean
+    private UserService userService;
+
+    Book firstBook;
+    Book secondBook;
+    Author author;
+    BookResponse bookResponse;
+
+    @BeforeEach
+    void setup() {
+
+        bookResponse = new BookResponse();
+        bookResponse.setTitle("Abba");
+        bookResponse.setDate("12.12.2020");
+        bookResponse.setAuthors(new ArrayList<>());
+        bookResponse.setToken("newToken");
 
         firstBook = new Book();
         firstBook.setId(1L);
-        firstBook.setTitle("Superman");
+        firstBook.setTitle("Abba");
         firstBook.setDate("12.12.2020");
-        firstBook.setAuthors(Arrays.asList(author));
-        firstBook.setUsers(new ArrayList<>());
+        firstBook.setIsRead(false);
+        firstBook.setAuthors(new ArrayList<>());
+        firstBook.setUsers(null);
         firstBook.setCreated(new Date());
         firstBook.setUpdated(new Date());
-        firstBook.setIsRead(false);
         firstBook.setStatus(Status.ACTIVE);
 
         secondBook = new Book();
         secondBook.setId(2L);
-        secondBook.setTitle("Batman");
+        secondBook.setTitle("Pudge");
         secondBook.setDate("21.21.2012");
-        secondBook.setAuthors(Arrays.asList(author));
-        secondBook.setUsers(new ArrayList<>());
+        secondBook.setIsRead(true);
+        secondBook.setAuthors(new ArrayList<>());
+        secondBook.setUsers(null);
         secondBook.setCreated(new Date());
         secondBook.setUpdated(new Date());
-        secondBook.setIsRead(false);
         secondBook.setStatus(Status.ACTIVE);
+
+        author = new Author();
+        author.setId(1L);
+        author.setName("Duma");
+        author.setBooks(List.of(firstBook,secondBook));
+        author.setCreated(new Date());
+        author.setUpdated(new Date());
+        author.setStatus(Status.ACTIVE);
     }
 
     @Test
     void getBookById() {
+
+        Mockito.when(bookRepository.findById(1L)).thenReturn(ofNullable(firstBook));
+        Book resultBook = bookService.getBookById(1L);
+        Assertions.assertEquals(firstBook,resultBook);
     }
 
     @Test
     void getBookByTitle() {
+        Mockito.when(bookRepository.findByTitle("Abba")).thenReturn(firstBook);
+        Book result = bookService.getBookByTitle("Abba");
+        Assertions.assertEquals(firstBook, result);
     }
 
-    @SneakyThrows
     @Test
     void getAllBooks() {
-        when(bookService.getAllBooks()).thenReturn(Arrays.asList(firstBook,secondBook));
-
-        this.mockMvc.perform(MockMvcRequestBuilders.get("user/book/"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.size()").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].title").value("Superman"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].date").value("12.12.2020"));
+        Mockito.when(bookRepository.findAll()).thenReturn(List.of(firstBook,secondBook));
+        List<Book> bookList  = bookService.getAllBooks();
+        Assertions.assertEquals(bookList.size(), 2);
+        Assertions.assertEquals(bookList.get(0), firstBook);
+        Assertions.assertEquals(bookList.get(1), secondBook);
     }
 
     @Test
     void getAllReadBooks() {
+        Mockito.when(bookRepository.findByIsReadEquals(true)).thenReturn(List.of(secondBook));
+
+        List<Book> bookList = bookService.getAllReadBooks();
+
+        Assertions.assertNotEquals(firstBook,bookList.get(0));
+        Assertions.assertEquals(secondBook,bookList.get(0));
+        Assertions.assertEquals(bookList.size(), 1);
     }
 
     @Test
     void getAllNoReadBooks() {
+        Mockito.when(bookRepository.findByIsReadEquals(false)).thenReturn(List.of(firstBook));
+
+        List<Book> bookList = bookService.getAllNoReadBooks();
+
+        Assertions.assertNotEquals(secondBook,bookList.get(0));
+        Assertions.assertEquals(firstBook,bookList.get(0));
+        Assertions.assertEquals(bookList.size(), 1);
     }
 
     @Test
     void addToReadBooks() {
+//        Mockito.when(bookService.addToReadBooks(firstBook)).thenReturn(true);
+
+        Assertions.assertTrue(bookService.addToReadBooks(firstBook));
     }
 
     @Test
     void deleteFromReadBooks() {
+        Assertions.assertTrue(bookService.deleteFromReadBooks(secondBook));
     }
 
     @Test
     void getBooksByDate() {
+
+        Mockito.when(bookRepository.findByDate("12.12.2020")).thenReturn(List.of(firstBook));
+
+        List<Book> bookList = bookService.getBooksByDate("12.12.2020");
+
+        Assertions.assertEquals(firstBook, bookList.get(0));
+        Assertions.assertEquals(firstBook.getTitle(), bookList.get(0).getTitle());
+        Assertions.assertTrue(bookList.size() == 1);
     }
 
     @Test
-    void getBookResponse() {
+    void createNewBookIfBookIsExist() {
+
+        Mockito.when(bookRepository.findByTitle(bookResponse.getTitle())).thenReturn(firstBook);
+
+        Book book = bookService.createNewBook(bookResponse);
+
+        Assertions.assertEquals(firstBook,book);
+        Assertions.assertEquals(firstBook.getTitle(), bookResponse.getTitle());
+        Assertions.assertEquals(bookResponse.getDate(), book.getDate());
     }
 
     @Test
-    void createNewBook() {
+    void createNewBookIfBookDidNotExist() {
+
+        firstBook.setTitle("Abbat");
+        bookResponse.setTitle("Abbat");
+
+        Book book = bookService.createNewBook(bookResponse);
+
+        Assertions.assertEquals(firstBook, book);
     }
 
     @Test
     void getBooksByAuthor() {
+
+        Mockito.when(authorRepository.findById(1L)).thenReturn(ofNullable(author));
+
+        List<Book> bookList = bookService.getBooksByAuthor(author);
+
+        Assertions.assertEquals(bookList.size(), 2);
+        Assertions.assertEquals(firstBook, bookList.get(0));
+        Assertions.assertEquals(secondBook,bookList.get(1));
+
     }
 
     @Test
     void getAuthorByName() {
+
+        Mockito.when(authorRepository.findByName("Duma")).thenReturn(author);
+
+        Author result = bookService.getAuthorByName("Duma");
+
+        Assertions.assertEquals(author, result);
+        Assertions.assertEquals(author.getName(), result.getName());
     }
 
     @Test
     void deleteBookById() {
+
+        Mockito.when(bookRepository.findById(1L)).thenReturn(ofNullable(firstBook));
+
+        bookService.deleteBookById(1L);
+
+        Assertions.assertEquals(firstBook.getStatus(),Status.DELETED);
+
     }
 
     @Test
     void getAllAuthors() {
+        Mockito.when(authorRepository.findAll()).thenReturn(List.of(author));
+
+        List<Author> authorList = bookService.getAllAuthors();
+
+        Assertions.assertEquals(author, authorList.get(0));
+        Assertions.assertEquals(authorList.size(), 1);
+        Assertions.assertEquals(author.getName(), authorList.get(0).getName());
     }
 
     @Test
     void getAuthorById() {
+        Mockito.when(authorRepository.findById(1L)).thenReturn(ofNullable(author));
+
+        Author result = bookService.getAuthorById(1L);
+
+        Assertions.assertEquals(author,result);
+        Assertions.assertEquals(author.getName(), result.getName());
     }
 }

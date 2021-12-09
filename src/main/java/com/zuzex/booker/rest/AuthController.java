@@ -6,7 +6,6 @@ import com.zuzex.booker.dto.AuthResponse;
 import com.zuzex.booker.dto.RegistrationRequest;
 import com.zuzex.booker.model.User;
 import com.zuzex.booker.security.jwt.JwtProv;
-import com.zuzex.booker.security.jwt.JwtProvider;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -47,8 +45,7 @@ public class AuthController {
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
 
-        userService.saveUser(user);
-        return new ResponseEntity<>(user, HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.saveUser(user), HttpStatus.CREATED);
     }
 
     @PostMapping("/auth")
@@ -61,11 +58,14 @@ public class AuthController {
 
     @PostMapping("/auth/refresh")
     public ResponseEntity<AuthResponse> refresh(@RequestBody @Valid AuthRefreshRequest request) {
-        String login = jwtProvider.getLoginFromToken(request.getToken());
-        User user = userService.findByLogin(login);
-        String accessToken = jwtProvider.generateToken(login);
-        String refreshToken = jwtProvider.generateRefreshToken(login);
+        if(jwtProvider.validateToken(request.getToken())) {
+            String login = jwtProvider.getLoginFromToken(request.getToken());
+            User user = userService.findByLogin(login);
+            String accessToken = jwtProvider.generateToken(login);
+            String refreshToken = jwtProvider.generateRefreshToken(login);
 
-        return new ResponseEntity<>(new AuthResponse(accessToken,refreshToken), HttpStatus.OK);
+            return new ResponseEntity<>(new AuthResponse(accessToken, refreshToken), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

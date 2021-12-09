@@ -7,7 +7,6 @@ import com.zuzex.booker.model.User;
 import com.zuzex.booker.repository.RoleRepository;
 import com.zuzex.booker.repository.UserRepository;
 import com.zuzex.booker.security.jwt.JwtProv;
-import com.zuzex.booker.security.jwt.JwtProvider;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

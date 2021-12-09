@@ -43,27 +43,56 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(Long id) {
-        return bookRepository.findById(id).orElse(null);
+        Book book = bookRepository.findById(id).orElse(null);
+        if(book.getStatus() == Status.ACTIVE)
+            return book;
+        else
+            return null;
     }
 
     @Override
     public Book getBookByTitle(String title) {
-        return bookRepository.findByTitle(title);
+        Book book = bookRepository.findByTitle(title);
+        if(book.getStatus() == Status.ACTIVE)
+            return book;
+        else
+            return null;
     }
 
     @Override
     public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+        List<Book> bookList = bookRepository.findAll();
+        List<Book> resultList = new ArrayList<>();
+
+        for (Book book : bookList) {
+            if(book.getStatus() == Status.ACTIVE)
+                resultList.add(book);
+        }
+        return resultList;
     }
 
     @Override
     public List<Book> getAllReadBooks() {
-        return bookRepository.findByIsReadEquals(true);
+        List<Book> bookList = bookRepository.findByIsReadEquals(true);
+        List<Book> resultList = new ArrayList<>();
+
+        for (Book book : bookList) {
+            if(book.getStatus() == Status.ACTIVE)
+                resultList.add(book);
+        }
+        return resultList;
     }
 
     @Override
     public List<Book> getAllNoReadBooks() {
-        return bookRepository.findByIsReadEquals(false);
+        List<Book> bookList = bookRepository.findByIsReadEquals(false);
+        List<Book> resultList = new ArrayList<>();
+
+        for (Book book : bookList) {
+            if(book.getStatus() == Status.ACTIVE)
+                resultList.add(book);
+        }
+        return resultList;
     }
 
     @Override
@@ -86,7 +115,14 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getBooksByDate(String date) {
-        return bookRepository.findByDate(date);
+        List<Book> bookList = bookRepository.findByDate(date);
+        List<Book> resultList = new ArrayList<>();
+
+        for (Book book : bookList) {
+            if(book.getStatus() == Status.ACTIVE)
+                resultList.add(book);
+        }
+        return resultList;
     }
 
     @Override
@@ -97,7 +133,6 @@ public class BookServiceImpl implements BookService {
                 .registerTypeAdapter(BookResponse.class, new BookResponseDeserializer())
                 .create();
         BookResponse bookResponse = gson.fromJson(responseEntity,BookResponse.class);
-//        bookResponse.setToken(token);
         return bookResponse;
     }
 
@@ -122,6 +157,8 @@ public class BookServiceImpl implements BookService {
 
         }
         book = bookRepository.findByTitle(bookResponse.getTitle());
+        book.setStatus(Status.ACTIVE);
+        bookRepository.save(book);
         userService.addBookToUser(book,bookResponse.getToken());
         return book;
     }
@@ -138,7 +175,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBookById(Long id) {
-        bookRepository.deleteById(id);
+        Book book = bookRepository.findById(id).orElse(null);
+        book.setStatus(Status.DELETED); // будет NPE , устранить
+        book.setUpdated(new Date());
+        bookRepository.save(book);
     }
 
     @Override
@@ -152,7 +192,6 @@ public class BookServiceImpl implements BookService {
     }
 
     private List<Author> getAllAuthorsFromAuthorResponse(BookResponse bookResponse) {
-
             List<Author> authors = new ArrayList<>();
             Author author = null;
             for (AuthorResponse response : bookResponse.getAuthors()) {
@@ -173,10 +212,6 @@ public class BookServiceImpl implements BookService {
 
             }
             return authors;
-    }
-
-    private void addUserToBook(BookResponse bookResponse) {
-
     }
 
     private boolean isExistByTitle(String title) {

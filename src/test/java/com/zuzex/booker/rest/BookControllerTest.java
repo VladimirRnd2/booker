@@ -13,14 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
@@ -206,16 +202,11 @@ class BookControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Duma"));
     }
 
-    private static RequestPostProcessor setToken(final String token) { // it's nice to extract into a helper
-        return new RequestPostProcessor() {
+    @Test
+    void deleteBookById() throws Exception {
 
-
-            @Override
-            public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
-                request.setAttribute("Authorization", token);
-
-                return request;
-            }
-        };
+        this.mockMvc.perform(delete("/user/book/1")
+                .with(user("vova").roles("USER")))
+                .andExpect(status().isOk());
     }
 }

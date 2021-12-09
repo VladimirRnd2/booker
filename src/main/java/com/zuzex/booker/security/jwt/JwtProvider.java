@@ -17,9 +17,11 @@ public class JwtProvider implements JwtProv{
     @Value("$(jwt.secret)")
     private String jwtSecret;
 
+    private Calendar cal;
+
     public String generateToken(String login) {
 //        Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Calendar cal = Calendar.getInstance(); // creates calendar
+        cal = Calendar.getInstance(); // creates calendar
         cal.setTime(new Date());
         cal.add(Calendar.MINUTE, 30);
         cal.getTime();
@@ -32,7 +34,7 @@ public class JwtProvider implements JwtProv{
 
     public String generateRefreshToken(String login) {
 //        Date date = Date.from(LocalDate.now().plusDays(30).atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Calendar cal = Calendar.getInstance(); // creates calendar
+        cal = Calendar.getInstance(); // creates calendar
         cal.setTime(new Date());
         cal.add(Calendar.DAY_OF_YEAR, 1);
         cal.getTime();
