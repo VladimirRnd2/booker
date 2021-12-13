@@ -1,9 +1,13 @@
 package com.zuzex.booker.rest;
 
+import com.zuzex.booker.dto.AuthRefreshRequest;
+import com.zuzex.booker.dto.AuthRequest;
+import com.zuzex.booker.dto.RegistrationRequest;
 import com.zuzex.booker.model.Role;
 import com.zuzex.booker.model.Status;
 import com.zuzex.booker.model.User;
 import com.zuzex.booker.security.jwt.JwtProv;
+import com.zuzex.booker.service.AuthService;
 import com.zuzex.booker.service.UserService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +45,6 @@ class AuthControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-
     private UserService userService;
 
     @MockBean
@@ -52,6 +55,9 @@ class AuthControllerTest {
 
     @MockBean
     private JwtProv jwtProvider;
+
+    @MockBean
+    private AuthService authService;
 
     User user;
 
@@ -96,7 +102,7 @@ class AuthControllerTest {
                 .content("{\"login\":\"test1\",\"password\":\"test1\",\"firstName\":\"test1\",\"lastName\":\"test1\"}"))
                 .andExpect(status().isCreated());
 
-        verify(userService).saveUser(any(User.class));
+        verify(authService).registerNewUser(any(RegistrationRequest.class));
 
     }
 
@@ -111,22 +117,20 @@ class AuthControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        verify(jwtProvider).generateToken(user.getLogin());
-        verify(jwtProvider).generateRefreshToken(user.getLogin());
+        verify(authService).auth(any(AuthRequest.class));
     }
 //
     @Test
     void refresh() throws Exception {
 
-        when(jwtProvider.getLoginFromToken(anyString())).thenReturn(user.getLogin());
+        when(jwtProvider.getLoginFromAccessToken(anyString())).thenReturn(user.getLogin());
         when(userService.findByLogin(user.getLogin())).thenReturn(user);
 
         this.mockMvc.perform(post("/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\n" + "    \"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MSIsImV4cCI6MTYzODUzMjMyMn0.qiexiCwnfJ4xJ69TIOQer2raqEzM-BKagM8VuMqxagjpwNwtItSy9wq1oTVX2ua7tlP1S40Ee2wZduHGB-2x1Q\"\n" + "}"))
+                .content("{\"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MSIsImV4cCI6MTYzODUzMjMyMn0.qiexiCwnfJ4xJ69TIOQer2raqEzM-BKagM8VuMqxagjpwNwtItSy9wq1oTVX2ua7tlP1S40Ee2wZduHGB-2x1Q\"\n" + "}"))
                 .andExpect(status().isOk());
 
-        verify(jwtProvider).generateToken(user.getLogin());
-        verify(jwtProvider).generateRefreshToken(user.getLogin());
+        verify(authService).refresh(any(AuthRefreshRequest.class));
     }
 }

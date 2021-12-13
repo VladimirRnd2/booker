@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User addBookToUser(Book book, String token) {
-        User user = findByLogin(jwtProvider.getLoginFromToken(token));
+        User user = findByLogin(jwtProvider.getLoginFromAccessToken(token));
         if(!user.getBooks().contains(book)) {
             user.getBooks().add(book);
             userRepository.save(user);

@@ -1,13 +1,12 @@
 package com.zuzex.booker.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class AuthResponse {
 
     private String accessToken;
-
     private String refreshToken;
 }

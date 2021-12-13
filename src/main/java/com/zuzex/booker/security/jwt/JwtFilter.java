@@ -2,7 +2,6 @@ package com.zuzex.booker.security.jwt;
 
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -40,10 +39,15 @@ public class JwtFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         String token = getTokenFromRequest((HttpServletRequest) servletRequest);
         if (token != null && jwtProvider.validateToken(token)) {
-            String userLogin = jwtProvider.getLoginFromToken(token);
-            JwtUser jwtUser = (JwtUser) jwtUserService.loadUserByUsername(userLogin);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(jwtUser, null, jwtUser.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                String userLogin = jwtProvider.getLoginFromAccessToken(token);
+                JwtUser jwtUser = (JwtUser) jwtUserService.loadUserByUsername(userLogin);
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(jwtUser, null, jwtUser.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+            else {
+                SecurityContextHolder.getContext().setAuthentication(null);
+            }
         }
         else {
 

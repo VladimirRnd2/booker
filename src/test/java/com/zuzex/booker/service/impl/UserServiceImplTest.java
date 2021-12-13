@@ -165,7 +165,7 @@ class UserServiceImplTest {
     @Test
     void addBookToUser() {
 
-        Mockito.when(jwtProvider.getLoginFromToken(any(String.class))).thenReturn("login");
+        Mockito.when(jwtProvider.getLoginFromAccessToken(any(String.class))).thenReturn("login");
         Mockito.when(userRepository.findByLogin("login")).thenReturn(user);
 
         User result = userService.findByLogin("login");

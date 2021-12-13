@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -43,11 +44,18 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(Long id) {
-        Book book = bookRepository.findById(id).orElse(null);
-        if(book.getStatus() == Status.ACTIVE)
-            return book;
+//        Book book = bookRepository.findById(id).orElse(null);
+//        if(book.getStatus() == Status.ACTIVE)
+//            return book;
+//        else
+//            return null;
+
+        Optional<Book> book = bookRepository.findById(id);
+        if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
+            return book.get();
+        }
         else
-            return null;
+            throw new RuntimeException("Book with id " + id + " not found");
     }
 
     @Override

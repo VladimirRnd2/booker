@@ -17,9 +17,12 @@ public class JwtProvider implements JwtProv{
     @Value("$(jwt.secret)")
     private String jwtSecret;
 
+    @Value("$(jwt.refresh.secret)")
+    private String jwtRefreshSecret;
+
     private Calendar cal;
 
-    public String generateToken(String login) {
+    public String generateAccessToken(String login) {
 //        Date date = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
         cal = Calendar.getInstance(); // creates calendar
         cal.setTime(new Date());
@@ -41,7 +44,7 @@ public class JwtProvider implements JwtProv{
         return Jwts.builder()
                 .setSubject(login)
                 .setExpiration(cal.getTime())
-                .signWith(SignatureAlgorithm.HS512,jwtSecret)
+                .signWith(SignatureAlgorithm.HS512,jwtRefreshSecret)
                 .compact();
     }
 
@@ -55,8 +58,23 @@ public class JwtProvider implements JwtProv{
         return false;
     }
 
-    public String getLoginFromToken(String token) {
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jwts.parser().setSigningKey(jwtRefreshSecret).parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            log.severe("invalid token");
+        }
+        return false;
+    }
+
+    public String getLoginFromAccessToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        return claims.getSubject();
+    }
+
+    public String getLoginFromRefreshToken(String token) {
+        Claims claims = Jwts.parser().setSigningKey(jwtRefreshSecret).parseClaimsJws(token).getBody();
         return claims.getSubject();
     }
 }
