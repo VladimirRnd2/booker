@@ -1,7 +1,5 @@
 package com.zuzex.booker.service.impl;
 
-import com.zuzex.booker.dto.AuthorResponse;
-import com.zuzex.booker.dto.BookRequest;
 import com.zuzex.booker.dto.BookResponse;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
@@ -24,8 +22,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-import static java.util.Optional.*;
 import static java.util.Optional.ofNullable;
 
 
@@ -56,6 +54,8 @@ class BookServiceImplTest {
     Book secondBook;
     Author author;
     BookResponse bookResponse;
+    Optional<Book> optionalFirstBook;
+    Optional<Author> optionalAuthor;
 
     @BeforeEach
     void setup() {
@@ -95,6 +95,9 @@ class BookServiceImplTest {
         author.setCreated(new Date());
         author.setUpdated(new Date());
         author.setStatus(Status.ACTIVE);
+
+        optionalFirstBook = Optional.of(firstBook);
+        optionalAuthor = Optional.of(author);
     }
 
     @Test
@@ -107,7 +110,7 @@ class BookServiceImplTest {
 
     @Test
     void getBookByTitle() {
-        Mockito.when(bookRepository.findByTitle("Abba")).thenReturn(firstBook);
+        Mockito.when(bookRepository.findByTitle("Abba")).thenReturn(optionalFirstBook);
         Book result = bookService.getBookByTitle("Abba");
         Assertions.assertEquals(firstBook, result);
     }
@@ -170,7 +173,7 @@ class BookServiceImplTest {
     @Test
     void createNewBookIfBookIsExist() {
 
-        Mockito.when(bookRepository.findByTitle(bookResponse.getTitle())).thenReturn(firstBook);
+        Mockito.when(bookRepository.findByTitle(bookResponse.getTitle())).thenReturn(optionalFirstBook);
 
         Book book = bookService.createNewBook(bookResponse);
 
@@ -206,7 +209,7 @@ class BookServiceImplTest {
     @Test
     void getAuthorByName() {
 
-        Mockito.when(authorRepository.findByName("Duma")).thenReturn(author);
+        Mockito.when(authorRepository.findByName("Duma")).thenReturn(optionalAuthor);
 
         Author result = bookService.getAuthorByName("Duma");
 

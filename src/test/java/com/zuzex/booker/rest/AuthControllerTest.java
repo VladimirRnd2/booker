@@ -81,19 +81,19 @@ class AuthControllerTest {
         assertNotNull(mockMvc);
     }
 
-    @Test
-    void shouldReturnListUsers() throws Exception {
-
-        when(userService.getAllUsers()).thenReturn(List.of(user));
-
-        this.mockMvc.perform(get("/allusers")
-                        .with(user("vova").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", Matchers.is(1)))
-                .andExpect(jsonPath("$[0].login").value("login"))
-                .andExpect(jsonPath("$[0].firstName").value("firstName"));
-
-    }
+//    @Test
+//    void shouldReturnListUsers() throws Exception {
+//
+//        when(userService.getAllUsers()).thenReturn(List.of(user));
+//
+//        this.mockMvc.perform(get("/allusers")
+//                        .with(user("vova").roles("USER")))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.size()", Matchers.is(1)))
+//                .andExpect(jsonPath("$[0].login").value("login"))
+//                .andExpect(jsonPath("$[0].firstName").value("firstName"));
+//
+//    }
 
     @Test
     void shouldCreateUser() throws Exception {

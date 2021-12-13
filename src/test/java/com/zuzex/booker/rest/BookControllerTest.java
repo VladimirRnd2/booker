@@ -17,6 +17,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
@@ -103,7 +105,7 @@ class BookControllerTest {
         bookResponse.setToken("newToken");
 
         when(bookService.createNewBook(any(BookResponse.class))).thenReturn(firstBook);
-        when(bookService.getBookResponse(any(BookRequest.class))).thenReturn(bookResponse);
+        when(bookService.getBookResponse(any(BookRequest.class), any(HttpServletRequest.class))).thenReturn(bookResponse);
 
         this.mockMvc.perform(post("/user/book/search")
                 .contentType(MediaType.APPLICATION_JSON)

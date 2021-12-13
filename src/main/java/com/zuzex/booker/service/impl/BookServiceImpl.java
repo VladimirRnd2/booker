@@ -11,12 +11,15 @@ import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Status;
 import com.zuzex.booker.repository.AuthorRepository;
 import com.zuzex.booker.repository.BookRepository;
+import com.zuzex.booker.security.jwt.JwtFilter;
 import com.zuzex.booker.service.BookService;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,14 +35,16 @@ public class BookServiceImpl implements BookService {
     private AuthorRepository authorRepository;
     private RestTemplate restTemplate;
     private UserService userService;
+    private JwtFilter jwtFilter;
 
 
     @Autowired
-    public BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, RestTemplate restTemplate, UserService userService) {
+    public BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, RestTemplate restTemplate, UserService userService, JwtFilter jwtFilter) {
         this.bookRepository = bookRepository;
         this.authorRepository = authorRepository;
         this.restTemplate = restTemplate;
         this.userService = userService;
+        this.jwtFilter = jwtFilter;
     }
 
     @Override
@@ -60,11 +65,12 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookByTitle(String title) {
-        Book book = bookRepository.findByTitle(title);
-        if(book.getStatus() == Status.ACTIVE)
-            return book;
+        Optional<Book> book = bookRepository.findByTitle(title);
+        if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
+            return book.get();
+        }
         else
-            return null;
+            throw new RuntimeException("Book with id " + title + " not found");
     }
 
     @Override
@@ -134,21 +140,23 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponse getBookResponse(BookRequest bookRequest) {
+    public BookResponse getBookResponse(BookRequest bookRequest, HttpServletRequest request) {
         String responseEntity = restTemplate.getForObject(BASE_URL.concat(bookRequest.getTitle()),String.class);
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .registerTypeAdapter(BookResponse.class, new BookResponseDeserializer())
                 .create();
         BookResponse bookResponse = gson.fromJson(responseEntity,BookResponse.class);
+        bookResponse.setToken(jwtFilter.getTokenFromRequest(request));
         return bookResponse;
     }
 
     @Override
     public Book createNewBook(BookResponse bookResponse) {
-        Book book = null;
-        if(!isExistByTitle(bookResponse.getTitle())) {
-            book = new Book();
+        Optional<Book> optionalBook = bookRepository.findByTitle(bookResponse.getTitle());
+
+        if(optionalBook.isEmpty()) {
+            Book book = new Book();
             book.setTitle(bookResponse.getTitle());
             book.setDate(bookResponse.getDate());
             book.setAuthors(getAllAuthorsFromAuthorResponse(bookResponse));
@@ -158,17 +166,14 @@ public class BookServiceImpl implements BookService {
             book.setStatus(Status.ACTIVE);
 
             bookRepository.save(book);
-
             userService.addBookToUser(book, bookResponse.getToken());
-
             return book;
-
         }
-        book = bookRepository.findByTitle(bookResponse.getTitle());
-        book.setStatus(Status.ACTIVE);
-        bookRepository.save(book);
-        userService.addBookToUser(book,bookResponse.getToken());
-        return book;
+
+            optionalBook.get().setStatus(Status.ACTIVE);
+            bookRepository.save(optionalBook.get());
+            userService.addBookToUser(optionalBook.get(), bookResponse.getToken());
+            return optionalBook.get();
     }
 
     @Override
@@ -178,15 +183,26 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Author getAuthorByName(String name) {
-        return authorRepository.findByName(name);
+        Optional<Author> optionalAuthor = authorRepository.findByName(name);
+        if(optionalAuthor.isPresent())
+            return optionalAuthor.get();
+        else
+            throw new RuntimeException("Author with this name not found");
     }
 
     @Override
     public void deleteBookById(Long id) {
-        Book book = bookRepository.findById(id).orElse(null);
-        book.setStatus(Status.DELETED); // будет NPE , устранить
-        book.setUpdated(new Date());
-        bookRepository.save(book);
+//        Book book = bookRepository.findById(id).orElse(null);
+//        book.setStatus(Status.DELETED); // будет NPE , устранить
+//        book.setUpdated(new Date());
+//        bookRepository.save(book);
+
+        Optional<Book> book = bookRepository.findById(id);
+        if(book.isPresent()) {
+            book.get().setStatus(Status.DELETED);
+            book.get().setUpdated(new Date());
+            bookRepository.save(book.get());
+        }
     }
 
     @Override
@@ -201,10 +217,11 @@ public class BookServiceImpl implements BookService {
 
     private List<Author> getAllAuthorsFromAuthorResponse(BookResponse bookResponse) {
             List<Author> authors = new ArrayList<>();
-            Author author = null;
             for (AuthorResponse response : bookResponse.getAuthors()) {
-                if(authorRepository.findByName(response.getName())== null) {
-                    author = new Author();
+                Optional<Author> optionalAuthor = authorRepository.findByName(response.getName());
+                if(optionalAuthor.isEmpty()) {
+
+                    Author author = new Author();
                     author.setName(response.getName());
                     author.setCreated(new Date());
                     author.setUpdated(new Date());
@@ -214,25 +231,9 @@ public class BookServiceImpl implements BookService {
                     authorRepository.save(author);
                 }
                 else {
-                    author = authorRepository.findByName(response.getName());
-                    authors.add(author);
+                    authors.add(optionalAuthor.get());
                 }
-
             }
             return authors;
-    }
-
-    private boolean isExistByTitle(String title) {
-        if(bookRepository.findByTitle(title) == null) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isExistAuthors(String name) {
-        if(authorRepository.findByName(name) == null) {
-            return false;
-        }
-        return true;
     }
 }

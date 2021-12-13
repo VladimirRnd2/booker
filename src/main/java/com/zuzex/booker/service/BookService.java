@@ -6,6 +6,7 @@ import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
 import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface BookService {
@@ -26,7 +27,7 @@ public interface BookService {
 
     List<Book> getBooksByDate(String date);
 
-    BookResponse getBookResponse(BookRequest bookRequest);
+    BookResponse getBookResponse(BookRequest bookRequest, HttpServletRequest request);
 
     Book createNewBook(BookResponse bookResponse);
 

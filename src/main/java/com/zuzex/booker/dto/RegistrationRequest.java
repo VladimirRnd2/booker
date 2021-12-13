@@ -2,20 +2,26 @@ package com.zuzex.booker.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 @Data
 public class RegistrationRequest {
 
-    @NotEmpty
+    @NotBlank
+    @Size(min = 2, max = 128)
     private String login;
 
-    @NotEmpty
+    @NotBlank
+    @Size(min= 8 , max = 128)
     private String password;
 
-    @NotEmpty
+    @NotBlank
+    @Size(min = 2, max = 128)
     private String firstName;
 
-    @NotEmpty
+    @NotBlank
+    @Size(min = 2, max = 128)
     private String lastName;
 }
