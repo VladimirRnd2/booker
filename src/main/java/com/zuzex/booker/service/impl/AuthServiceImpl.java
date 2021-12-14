@@ -4,7 +4,9 @@ import com.zuzex.booker.dto.AuthRefreshRequest;
 import com.zuzex.booker.dto.AuthRequest;
 import com.zuzex.booker.dto.AuthResponse;
 import com.zuzex.booker.dto.RegistrationRequest;
+import com.zuzex.booker.model.RefreshToken;
 import com.zuzex.booker.model.User;
+import com.zuzex.booker.repository.RefreshTokenRepository;
 import com.zuzex.booker.security.jwt.JwtProv;
 import com.zuzex.booker.service.AuthService;
 import com.zuzex.booker.service.UserService;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -22,11 +25,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserService userService;
     private final Map<String,String> refreshStorage = new HashMap<>();
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProv jwtProvider;
 
     @Autowired
-    public AuthServiceImpl(UserService userService, JwtProv jwtProvider) {
+    public AuthServiceImpl(UserService userService, RefreshTokenRepository refreshTokenRepository, JwtProv jwtProvider) {
         this.userService = userService;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.jwtProvider = jwtProvider;
     }
 
@@ -52,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.findByLoginAndPassword(request.getLogin(), request.getPassword());
         String accessToken = jwtProvider.generateAccessToken(user.getLogin());
         String refreshToken = jwtProvider.generateRefreshToken(user.getLogin());
-        refreshStorage.put(user.getLogin(), refreshToken);
+        refreshTokenRepository.save(new RefreshToken(user.getLogin(),refreshToken));
         return new AuthResponse(accessToken, refreshToken);
     }
 
@@ -60,13 +65,17 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(AuthRefreshRequest request) {
         if(jwtProvider.validateRefreshToken(request.getToken())) {
             String login = jwtProvider.getLoginFromRefreshToken(request.getToken());
-            String saveRefreshToken = refreshStorage.get(login);
-            if(saveRefreshToken != null && saveRefreshToken.equals(request.getToken())) {
-                User user = userService.findByLogin(login);
-                String accessToken = jwtProvider.generateAccessToken(login);
-                String refreshToken = jwtProvider.generateRefreshToken(login);
-                refreshStorage.put(user.getLogin(), refreshToken);
-                return new AuthResponse(accessToken,refreshToken);
+            Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByToken(request.getToken());
+            if (optionalRefreshToken.isPresent()) {
+                String saveRefreshToken = optionalRefreshToken.get().getToken();
+                if(saveRefreshToken != null && saveRefreshToken.equals(request.getToken())) {
+                    User user = userService.findByLogin(login);
+                    String accessToken = jwtProvider.generateAccessToken(login);
+                    String refreshToken = jwtProvider.generateRefreshToken(login);
+                    refreshTokenRepository.deleteAll();
+                    refreshTokenRepository.save(new RefreshToken(user.getLogin(),refreshToken));
+                    return new AuthResponse(accessToken,refreshToken);
+                }
             }
         }
         throw new JwtException("Invalid token");

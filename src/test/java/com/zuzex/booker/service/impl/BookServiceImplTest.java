@@ -30,7 +30,6 @@ import static java.util.Optional.ofNullable;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-
 class BookServiceImplTest {
 
     private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes?q=";

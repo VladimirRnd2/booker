@@ -98,6 +98,24 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="1.0.3" author="zuzex.voronkov">
+        <createTable tableName="tokens">
+
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="login" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="token" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
     <changeSet id="1.0.5" author="zuzex.voronkov">
         <createTable tableName="users_books">
             <column name="user_id" type="bigint">
