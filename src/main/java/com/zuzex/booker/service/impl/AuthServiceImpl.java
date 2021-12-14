@@ -24,7 +24,6 @@ import java.util.Optional;
 public class AuthServiceImpl implements AuthService {
 
     private final UserService userService;
-    private final Map<String,String> refreshStorage = new HashMap<>();
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtProv jwtProvider;
 
