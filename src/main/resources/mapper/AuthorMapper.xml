@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zuzex.booker.mapper.AuthorMapper">
+    <resultMap id="authorResultMap" type="com.zuzex.booker.model.Author">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="created" column="created"/>
+        <result property="updated" column="updated"/>
+        <result property="status" column="status"/>
+        <collection property="books" javaType="List" ofType="com.zuzex.booker.model.Author"
+                    column="id" select="com.zuzex.booker.mapper.BookMapper.getBooksByAuthorId"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="authorResultMap">
+        select * from authors;
+    </select>
+
+    <select id="findAuthorById" parameterType="Long" resultType="com.zuzex.booker.model.Author">
+        select * from authors where id = #{id};
+    </select>
+
+    <select id="findAuthorByName" parameterType="String" resultType="com.zuzex.booker.model.Author">
+        select * from authors where name =#{name};
+    </select>
+
+    <select id="getAuthorsByBookId" resultMap="authorResultMap" parameterType="Long">
+        select a.id, a.name, a.created, a.updated, a.status from authors as a
+        join books_authors as ba on a.id = ba.author_id
+        join books as b on ba.book_id = b.id
+        where b.id =#{id};
+    </select>
+
+    <insert id="saveAuthor" useGeneratedKeys="true">
+        insert into authors (name,created,updated,status) values (#{name},#{created},#{updated},#{status});
+    </insert>
+</mapper>

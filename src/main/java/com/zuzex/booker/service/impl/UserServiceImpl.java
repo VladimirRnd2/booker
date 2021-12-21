@@ -4,8 +4,8 @@ import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Role;
 import com.zuzex.booker.model.Status;
 import com.zuzex.booker.model.User;
-import com.zuzex.booker.repository.RoleRepository;
-import com.zuzex.booker.repository.UserRepository;
+import com.zuzex.booker.repository.dao.RoleDao;
+import com.zuzex.booker.repository.dao.UserDao;
 import com.zuzex.booker.security.jwt.JwtProv;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,27 +17,28 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
+    private UserDao userDao;
+    private RoleDao roleDao;
     private PasswordEncoder passwordEncoder;
     private JwtProv jwtProvider;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, JwtProv jwtProvider) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+    public UserServiceImpl(UserDao userDao, RoleDao roleDao, JwtProv jwtProvider) {
+        this.userDao = userDao;
+        this.roleDao = roleDao;
         this.jwtProvider = jwtProvider;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     @Override
     public User saveUser(User user) {
-        Role roleUser = roleRepository.findByName("ROLE_USER");
+        Role roleUser = roleDao.findRoleByName("ROLE_USER");
         user.setRole(roleUser);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         if (user.getCreated() == null) {
@@ -46,37 +47,32 @@ public class UserServiceImpl implements UserService {
         user.setUpdated(new Date());
         user.setStatus(Status.ACTIVE);
         user.setBooks(new ArrayList<Book>());
-        return userRepository.save(user);
+        userDao.saveUser(user);
+        return user;
     }
 
 
 
     @Override
     public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
+        List<User> users = userDao.findAllUsers();
         return users;
     }
 
     @Override
     public User findByLogin(String login) {
-        return userRepository.findByLogin(login);
+        return userDao.findUserByLogin(login);
     }
 
     @Override
     public User findById(Long id) {
-        User result = userRepository.findById(id).orElse(null);
-
-        if( result == null) {
-            return null;
-        }
-        else {
-            return result;
-        }
+        User result = userDao.findUserById(id);
+        return result;
     }
 
     @Override
     public void delete(Long id) {
-        userRepository.deleteById(id);
+        userDao.deleteUserById(id);
     }
 
     public User findByLoginAndPassword(String login, String password) {
@@ -94,7 +90,7 @@ public class UserServiceImpl implements UserService {
         User user = findByLogin(jwtProvider.getLoginFromAccessToken(token));
         if(!user.getBooks().contains(book)) {
             user.getBooks().add(book);
-            userRepository.save(user);
+            userDao.saveUser(user);
         }
         return user;
     }

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zuzex.booker.mapper.BookMapper">
+    <resultMap id="bookResultMap" type="com.zuzex.booker.model.Book">
+        <id property="id" column="id"/>
+        <result property="title" column="tile"/>
+        <result property="date" column="date"/>
+        <result property="isRead" column="is_read"/>
+        <result property="created" column="created"/>
+        <result property="updated" column="updated"/>
+        <result property="status" column="status"/>
+        <collection property="users" javaType="List" ofType="com.zuzex.booker.model.User"
+                    column="id" select="com.zuzex.booker.mapper.UserMapper.getUsersByBookId"/>
+        <collection property="authors" javaType="List" ofType="com.zuzex.booker.model.Author"
+                    column="id" select="com.zuzex.booker.mapper.AuthorMapper.getAuthorsByBookId"/>
+    </resultMap>
+
+    <select id="findBookById" parameterType="Long" resultType="com.zuzex.booker.model.Book">
+        select * from books where id={id};
+    </select>
+
+    <select id="findBookByTitle" parameterType="String" resultType="com.zuzex.booker.model.Book">
+        select * from books where title =#{title};
+    </select>
+
+    <select id="findAllBooks" resultMap="bookResultMap">
+        select * from books;
+    </select>
+
+    <select id="findByIsReadEquals" resultMap="bookResultMap" parameterType="Long">
+        select * from books where is_read=#{isRead};
+    </select>
+
+    <select id="findByDate" resultMap="bookResultMap" parameterType="String">
+        select * from books where date=#{date};
+    </select>
+
+    <select id="getBooksByUserId" resultMap="bookResultMap" parameterType="Long">
+        select b.id, b.title, b.date, b.is_read, b.created, b.updated, b.status from books as b
+        join users_books as ub on b.id = ub.book_id
+        join users as u on ub.user_id = u.id
+        where u.id = #{id};
+    </select>
+
+    <select id="getBooksByAuthorId" resultMap="bookResultMap" parameterType="Long">
+        select b.id, b.title, b.date, b.is_read, b.created, b.updated, b.status from books as b
+        join books_authors as ba on b.id = ba.book_id
+        join authors as a on ba.author_id = a.id
+        when a.id = #{id};
+    </select>
+
+    <insert id="saveBook" useGeneratedKeys="true">
+        "insert into books (title,date,is_read,created,updated,status)
+        values(#{title},#{date},#{isRead},#{created},#{updated},#{status});
+    </insert>
+
+</mapper>

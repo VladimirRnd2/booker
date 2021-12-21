@@ -41,96 +41,96 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AuthController.class)
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private UserService userService;
-
-    @MockBean
-    private UserDetailsService userDetailsService;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @MockBean
-    private JwtProv jwtProvider;
-
-    @MockBean
-    private AuthService authService;
-
-    User user;
-
-    @BeforeEach
-    void setup() {
-        user = new User();
-        user.setId(1L);
-        user.setLogin("login");
-        user.setPassword("password");
-        user.setFirstName("firstName");
-        user.setLastName("lastName");
-        user.setBooks(new ArrayList<>());
-        user.setRole(new Role(1L, "ROLE_USER"));
-        user.setStatus(Status.ACTIVE);
-        user.setCreated(new Date());
-        user.setUpdated(new Date());
-    }
-
-    @Test
-    void shouldCreateMockMvc() {
-        assertNotNull(mockMvc);
-    }
-
+//    @Autowired
+//    private MockMvc mockMvc;
+//
+//    @MockBean
+//    private UserService userService;
+//
+//    @MockBean
+//    private UserDetailsService userDetailsService;
+//
+//    @Autowired
+//    private WebApplicationContext webApplicationContext;
+//
+//    @MockBean
+//    private JwtProv jwtProvider;
+//
+//    @MockBean
+//    private AuthService authService;
+//
+//    User user;
+//
+//    @BeforeEach
+//    void setup() {
+//        user = new User();
+//        user.setId(1L);
+//        user.setLogin("login");
+//        user.setPassword("password");
+//        user.setFirstName("firstName");
+//        user.setLastName("lastName");
+//        user.setBooks(new ArrayList<>());
+//        user.setRole(new Role(1L, "ROLE_USER"));
+//        user.setStatus(Status.ACTIVE);
+//        user.setCreated(new Date());
+//        user.setUpdated(new Date());
+//    }
+//
 //    @Test
-//    void shouldReturnListUsers() throws Exception {
+//    void shouldCreateMockMvc() {
+//        assertNotNull(mockMvc);
+//    }
 //
-//        when(userService.getAllUsers()).thenReturn(List.of(user));
+////    @Test
+////    void shouldReturnListUsers() throws Exception {
+////
+////        when(userService.getAllUsers()).thenReturn(List.of(user));
+////
+////        this.mockMvc.perform(get("/allusers")
+////                        .with(user("vova").roles("USER")))
+////                .andExpect(status().isOk())
+////                .andExpect(jsonPath("$.size()", Matchers.is(1)))
+////                .andExpect(jsonPath("$[0].login").value("login"))
+////                .andExpect(jsonPath("$[0].firstName").value("firstName"));
+////
+////    }
 //
-//        this.mockMvc.perform(get("/allusers")
-//                        .with(user("vova").roles("USER")))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.size()", Matchers.is(1)))
-//                .andExpect(jsonPath("$[0].login").value("login"))
-//                .andExpect(jsonPath("$[0].firstName").value("firstName"));
+//    @Test
+//    void shouldCreateUser() throws Exception {
+//        this.mockMvc.perform(post("/register")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{\"login\":\"test1\",\"password\":\"test1\",\"firstName\":\"test1\",\"lastName\":\"test1\"}"))
+//                .andExpect(status().isCreated());
+//
+//        verify(authService).registerNewUser(any(RegistrationRequest.class));
 //
 //    }
-
-    @Test
-    void shouldCreateUser() throws Exception {
-        this.mockMvc.perform(post("/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"login\":\"test1\",\"password\":\"test1\",\"firstName\":\"test1\",\"lastName\":\"test1\"}"))
-                .andExpect(status().isCreated());
-
-        verify(authService).registerNewUser(any(RegistrationRequest.class));
-
-    }
-
-
-    @Test
-    void shouldAuthUser() throws Exception {
-
-        when(userService.findByLoginAndPassword(anyString(),anyString())).thenReturn(user);
-        this.mockMvc.perform(post("/auth")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"login\":\"test1\",\"password\":\"test1\"}"))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        verify(authService).auth(any(AuthRequest.class));
-    }
 //
-    @Test
-    void refresh() throws Exception {
-
-        when(jwtProvider.getLoginFromAccessToken(anyString())).thenReturn(user.getLogin());
-        when(userService.findByLogin(user.getLogin())).thenReturn(user);
-
-        this.mockMvc.perform(post("/auth/refresh")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MSIsImV4cCI6MTYzODUzMjMyMn0.qiexiCwnfJ4xJ69TIOQer2raqEzM-BKagM8VuMqxagjpwNwtItSy9wq1oTVX2ua7tlP1S40Ee2wZduHGB-2x1Q\"\n" + "}"))
-                .andExpect(status().isOk());
-
-        verify(authService).refresh(any(AuthRefreshRequest.class));
-    }
+//
+//    @Test
+//    void shouldAuthUser() throws Exception {
+//
+//        when(userService.findByLoginAndPassword(anyString(),anyString())).thenReturn(user);
+//        this.mockMvc.perform(post("/auth")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{\"login\":\"test1\",\"password\":\"test1\"}"))
+//                .andDo(print())
+//                .andExpect(status().isOk());
+//
+//        verify(authService).auth(any(AuthRequest.class));
+//    }
+////
+//    @Test
+//    void refresh() throws Exception {
+//
+//        when(jwtProvider.getLoginFromAccessToken(anyString())).thenReturn(user.getLogin());
+//        when(userService.findByLogin(user.getLogin())).thenReturn(user);
+//
+//        this.mockMvc.perform(post("/auth/refresh")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{\"token\":\"eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MSIsImV4cCI6MTYzODUzMjMyMn0.qiexiCwnfJ4xJ69TIOQer2raqEzM-BKagM8VuMqxagjpwNwtItSy9wq1oTVX2ua7tlP1S40Ee2wZduHGB-2x1Q\"\n" + "}"))
+//                .andExpect(status().isOk());
+//
+//        verify(authService).refresh(any(AuthRefreshRequest.class));
+//    }
 }

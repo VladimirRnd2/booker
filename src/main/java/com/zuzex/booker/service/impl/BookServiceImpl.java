@@ -9,8 +9,8 @@ import com.zuzex.booker.dto.serializer.BookResponseDeserializer;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Status;
-import com.zuzex.booker.repository.AuthorRepository;
-import com.zuzex.booker.repository.BookRepository;
+import com.zuzex.booker.repository.dao.AuthorDao;
+import com.zuzex.booker.repository.dao.BookDao;
 import com.zuzex.booker.security.jwt.JwtFilter;
 import com.zuzex.booker.service.BookService;
 import com.zuzex.booker.service.UserService;
@@ -31,17 +31,17 @@ public class BookServiceImpl implements BookService {
 
     private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes?q=";
 
-    private BookRepository bookRepository;
-    private AuthorRepository authorRepository;
+    private BookDao bookDao;
+    private AuthorDao authorDao;
     private RestTemplate restTemplate;
     private UserService userService;
     private JwtFilter jwtFilter;
 
 
     @Autowired
-    public BookServiceImpl(BookRepository bookRepository, AuthorRepository authorRepository, RestTemplate restTemplate, UserService userService, JwtFilter jwtFilter) {
-        this.bookRepository = bookRepository;
-        this.authorRepository = authorRepository;
+    public BookServiceImpl(BookDao bookDao, AuthorDao authorDao, RestTemplate restTemplate, UserService userService, JwtFilter jwtFilter) {
+        this.bookDao = bookDao;
+        this.authorDao = authorDao;
         this.restTemplate = restTemplate;
         this.userService = userService;
         this.jwtFilter = jwtFilter;
@@ -49,13 +49,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookById(Long id) {
-//        Book book = bookRepository.findById(id).orElse(null);
-//        if(book.getStatus() == Status.ACTIVE)
-//            return book;
-//        else
-//            return null;
-
-        Optional<Book> book = bookRepository.findById(id);
+        Optional<Book> book = bookDao.findBookById(id);
         if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
             return book.get();
         }
@@ -65,7 +59,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookByTitle(String title) {
-        Optional<Book> book = bookRepository.findByTitle(title);
+        Optional<Book> book = bookDao.findBookByTitle(title);
         if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
             return book.get();
         }
@@ -75,7 +69,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getAllBooks() {
-        List<Book> bookList = bookRepository.findAll();
+        List<Book> bookList = bookDao.findAllBooks();
         List<Book> resultList = new ArrayList<>();
 
         for (Book book : bookList) {
@@ -87,7 +81,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getAllReadBooks() {
-        List<Book> bookList = bookRepository.findByIsReadEquals(true);
+        List<Book> bookList = bookDao.findByIsReadEquals(true);
         List<Book> resultList = new ArrayList<>();
 
         for (Book book : bookList) {
@@ -99,7 +93,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<Book> getAllNoReadBooks() {
-        List<Book> bookList = bookRepository.findByIsReadEquals(false);
+        List<Book> bookList = bookDao.findByIsReadEquals(false);
         List<Book> resultList = new ArrayList<>();
 
         for (Book book : bookList) {
@@ -114,7 +108,7 @@ public class BookServiceImpl implements BookService {
         if(book.getIsRead())
             return false;
         book.setIsRead(true);
-        bookRepository.save(book);
+        bookDao.saveBook(book);
         return true;
     }
 
@@ -123,13 +117,13 @@ public class BookServiceImpl implements BookService {
         if(!book.getIsRead())
             return false;
         book.setIsRead(false);
-        bookRepository.save(book);
+        bookDao.saveBook(book);
         return true;
     }
 
     @Override
     public List<Book> getBooksByDate(String date) {
-        List<Book> bookList = bookRepository.findByDate(date);
+        List<Book> bookList = bookDao.findByDate(date);
         List<Book> resultList = new ArrayList<>();
 
         for (Book book : bookList) {
@@ -153,7 +147,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book createNewBook(BookResponse bookResponse) {
-        Optional<Book> optionalBook = bookRepository.findByTitle(bookResponse.getTitle());
+        Optional<Book> optionalBook = bookDao.findBookByTitle(bookResponse.getTitle());
 
         if(optionalBook.isEmpty()) {
             Book book = new Book();
@@ -165,13 +159,13 @@ public class BookServiceImpl implements BookService {
             book.setUpdated(new Date());
             book.setStatus(Status.ACTIVE);
 
-            bookRepository.save(book);
+            bookDao.saveBook(book);
             userService.addBookToUser(book, bookResponse.getToken());
             return book;
         }
 
             optionalBook.get().setStatus(Status.ACTIVE);
-            bookRepository.save(optionalBook.get());
+            bookDao.saveBook(optionalBook.get());
             userService.addBookToUser(optionalBook.get(), bookResponse.getToken());
             return optionalBook.get();
     }
@@ -183,7 +177,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Author getAuthorByName(String name) {
-        Optional<Author> optionalAuthor = authorRepository.findByName(name);
+        Optional<Author> optionalAuthor = authorDao.findAuthorByName(name);
         if(optionalAuthor.isPresent())
             return optionalAuthor.get();
         else
@@ -197,28 +191,28 @@ public class BookServiceImpl implements BookService {
 //        book.setUpdated(new Date());
 //        bookRepository.save(book);
 
-        Optional<Book> book = bookRepository.findById(id);
+        Optional<Book> book = bookDao.findBookById(id);
         if(book.isPresent()) {
             book.get().setStatus(Status.DELETED);
             book.get().setUpdated(new Date());
-            bookRepository.save(book.get());
+            bookDao.saveBook(book.get());
         }
     }
 
     @Override
     public List<Author> getAllAuthors() {
-        return authorRepository.findAll();
+        return authorDao.findAllAuthors();
     }
 
     @Override
     public Author getAuthorById(Long id) {
-        return authorRepository.findById(id).orElse(null);
+        return authorDao.findAuthorById(id).orElse(null);
     }
 
     private List<Author> getAllAuthorsFromAuthorResponse(BookResponse bookResponse) {
             List<Author> authors = new ArrayList<>();
             for (AuthorResponse response : bookResponse.getAuthors()) {
-                Optional<Author> optionalAuthor = authorRepository.findByName(response.getName());
+                Optional<Author> optionalAuthor = authorDao.findAuthorByName(response.getName());
                 if(optionalAuthor.isEmpty()) {
 
                     Author author = new Author();
@@ -228,7 +222,7 @@ public class BookServiceImpl implements BookService {
                     author.setStatus(Status.ACTIVE);
 
                     authors.add(author);
-                    authorRepository.save(author);
+                    authorDao.saveAuthor(author);
                 }
                 else {
                     authors.add(optionalAuthor.get());

@@ -6,7 +6,7 @@ import com.zuzex.booker.dto.AuthResponse;
 import com.zuzex.booker.dto.RegistrationRequest;
 import com.zuzex.booker.model.RefreshToken;
 import com.zuzex.booker.model.User;
-import com.zuzex.booker.repository.RefreshTokenRepository;
+import com.zuzex.booker.repository.dao.RefreshTokenDao;
 import com.zuzex.booker.security.jwt.JwtProv;
 import com.zuzex.booker.service.AuthService;
 import com.zuzex.booker.service.UserService;
@@ -15,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -24,13 +22,13 @@ import java.util.Optional;
 public class AuthServiceImpl implements AuthService {
 
     private final UserService userService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenDao refreshTokenDao;
     private final JwtProv jwtProvider;
 
     @Autowired
-    public AuthServiceImpl(UserService userService, RefreshTokenRepository refreshTokenRepository, JwtProv jwtProvider) {
+    public AuthServiceImpl(UserService userService, RefreshTokenDao refreshTokenDao, JwtProv jwtProvider) {
         this.userService = userService;
-        this.refreshTokenRepository = refreshTokenRepository;
+        this.refreshTokenDao = refreshTokenDao;
         this.jwtProvider = jwtProvider;
     }
 
@@ -56,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userService.findByLoginAndPassword(request.getLogin(), request.getPassword());
         String accessToken = jwtProvider.generateAccessToken(user.getLogin());
         String refreshToken = jwtProvider.generateRefreshToken(user.getLogin());
-        refreshTokenRepository.save(new RefreshToken(user.getLogin(),refreshToken));
+        refreshTokenDao.saveRefreshToken(new RefreshToken(user.getLogin(),refreshToken));
         return new AuthResponse(accessToken, refreshToken);
     }
 
@@ -64,15 +62,15 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(AuthRefreshRequest request) {
         if(jwtProvider.validateRefreshToken(request.getToken())) {
             String login = jwtProvider.getLoginFromRefreshToken(request.getToken());
-            Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByToken(request.getToken());
+            Optional<RefreshToken> optionalRefreshToken = refreshTokenDao.findRefreshTokenByToken(request.getToken());
             if (optionalRefreshToken.isPresent()) {
                 String saveRefreshToken = optionalRefreshToken.get().getToken();
                 if(saveRefreshToken != null && saveRefreshToken.equals(request.getToken())) {
                     User user = userService.findByLogin(login);
                     String accessToken = jwtProvider.generateAccessToken(login);
                     String refreshToken = jwtProvider.generateRefreshToken(login);
-                    refreshTokenRepository.deleteAll();
-                    refreshTokenRepository.save(new RefreshToken(user.getLogin(),refreshToken));
+                    refreshTokenDao.deleteRefreshTokenByLogin(login);
+                    refreshTokenDao.saveRefreshToken(new RefreshToken(user.getLogin(),refreshToken));
                     return new AuthResponse(accessToken,refreshToken);
                 }
             }

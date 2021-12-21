@@ -1,0 +1,20 @@
+package com.zuzex.booker.mapper;
+
+import com.zuzex.booker.model.Author;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+@Mapper
+public interface AuthorMapper {
+
+    List<Author> findAllAuthors();
+    List<Author> getAuthorsByBookId(@Param("id") Long id);
+    Author findAuthorById(@Param("id") Long id);
+    Author findAuthorByName(@Param("name") String name);
+    void saveAuthor(Author author);
+
+
+}
