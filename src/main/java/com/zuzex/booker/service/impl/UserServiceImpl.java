@@ -61,7 +61,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByLogin(String login) {
-        return userDao.findUserByLogin(login);
+        User user = userDao.findUserByLogin(login);
+        if (user != null) {
+            user.setRole(roleDao.findRoleByUserId(user.getId()));
+        }
+        return user;
     }
 
     @Override
@@ -85,13 +89,13 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    @Override
-    public User addBookToUser(Book book, String token) {
-        User user = findByLogin(jwtProvider.getLoginFromAccessToken(token));
-        if(!user.getBooks().contains(book)) {
-            user.getBooks().add(book);
-            userDao.saveUser(user);
-        }
-        return user;
-    }
+//    @Override
+//    public User addBookToUser(Book book, String token) {
+//        User user = findByLogin(jwtProvider.getLoginFromAccessToken(token));
+//        if(!user.getBooks().contains(book)) {
+//            user.getBooks().add(book);
+//            userDao.saveUser(user);
+//        }
+//        return user;
+//    }
 }

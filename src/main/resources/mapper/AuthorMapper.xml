@@ -9,11 +9,11 @@
         <result property="created" column="created"/>
         <result property="updated" column="updated"/>
         <result property="status" column="status"/>
-        <collection property="books" javaType="List" ofType="com.zuzex.booker.model.Author"
+        <collection property="books" javaType="List" ofType="com.zuzex.booker.model.Book"
                     column="id" select="com.zuzex.booker.mapper.BookMapper.getBooksByAuthorId"/>
     </resultMap>
 
-    <select id="findAll" resultMap="authorResultMap">
+    <select id="findAllAuthors" resultMap="authorResultMap">
         select * from authors;
     </select>
 
@@ -33,6 +33,6 @@
     </select>
 
     <insert id="saveAuthor" useGeneratedKeys="true">
-        insert into authors (name,created,updated,status) values (#{name},#{created},#{updated},#{status});
+        insert into authors (name,created,updated,status) values (#{name}, #{created}, #{updated}, #{status});
     </insert>
 </mapper>

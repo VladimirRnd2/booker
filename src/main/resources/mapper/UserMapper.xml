@@ -38,13 +38,13 @@
     <select id="getUsersByBookId" resultMap="userResultMap">
         select u.id, u.login, u.password, u.first_name, u.last_name, u.created, u.updated, u.status from users as u
         join users_books as ub on u.id = ub.user_id
-        join books as b on us.book_id = b.id
-        when b.id = #{id};
+        join books as b on ub.book_id = b.id
+        where b.id = #{id};
     </select>
 
     <insert id="saveUser" useGeneratedKeys="true">
-        insert into (login,password,first_name,last_name,created,updated,status,role_id)
-        values(#{login},#{password},#{firstName},#{lastName},#{created},#{updated},#{status},#{role});
+        insert into users (login,password,first_name,last_name,created,updated,status,role_id)
+        values(#{login},#{password},#{firstName},#{lastName},#{created},#{updated},#{status},#{role.id});
     </insert>
 
     <delete id="deleteUserById" parameterType="Long">

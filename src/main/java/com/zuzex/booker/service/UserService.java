@@ -19,5 +19,5 @@ public interface UserService {
 
     User findByLoginAndPassword(String login, String password);
 
-    User addBookToUser(Book book, String token);
+//    User addBookToUser(Book book, String token);
 }

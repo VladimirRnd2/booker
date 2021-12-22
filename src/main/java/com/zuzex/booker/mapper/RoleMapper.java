@@ -9,5 +9,6 @@ public interface RoleMapper {
 
     Role findRoleById(@Param("id") Long id);
     Role findRoleByName(@Param("name") String name);
+    Role findRoleByUserId(@Param("id") Long id);
     void saveRole(Role role);
 }

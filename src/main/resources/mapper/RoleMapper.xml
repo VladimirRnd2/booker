@@ -17,6 +17,12 @@
         select * from roles where name =#{name};
     </select>
 
+    <select id="findRoleByUserId" resultMap="roleResultMap">
+        select r.id, r.name from roles as r
+        join users as u on r.id = u.role_id
+        where u.id =#{id};
+    </select>
+
     <insert id="SaveRole" useGeneratedKeys="true">
         insert into roles (name) values(#{name});
     </insert>

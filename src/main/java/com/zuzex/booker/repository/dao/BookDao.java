@@ -38,16 +38,16 @@ public class BookDao {
         return this.sqlSession.selectList("getBooksByAuthorId", id);
     }
 
-    public Optional<Book> findBookById(Long id) {
+    public Book findBookById(Long id) {
         return this.sqlSession.selectOne("findBookById", id);
     }
 
-    public Optional<Book> findBookByTitle(String title) {
+    public Book findBookByTitle(String title) {
         return this.sqlSession.selectOne("findBookByTitle", title);
     }
 
     public Book saveBook(Book book) {
-        this.sqlSession.insert("saveBook");
+        this.sqlSession.insert("saveBook", book);
         return book;
     }
 }

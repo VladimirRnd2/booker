@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class AuthorDao {
@@ -26,16 +25,16 @@ public class AuthorDao {
         return this.sqlSession.selectList("getAuthorsByBookId", id);
     }
 
-    public Optional<Author> findAuthorById(Long id) {
+    public Author findAuthorById(Long id) {
         return this.sqlSession.selectOne("findAuthorById", id);
     }
 
-    public Optional<Author> findAuthorByName(String name) {
+    public Author findAuthorByName(String name) {
         return this.sqlSession.selectOne("findAuthorByName", name);
     }
 
     public Author saveAuthor(Author author) {
-        this.sqlSession.insert("saveAuthor");
+        this.sqlSession.insert("saveAuthor", author);
         return author;
     }
 }

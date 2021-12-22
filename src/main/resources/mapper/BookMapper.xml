@@ -19,7 +19,7 @@
     </resultMap>
 
     <select id="findBookById" parameterType="Long" resultType="com.zuzex.booker.model.Book">
-        select * from books where id={id};
+        select * from books where id=#{id};
     </select>
 
     <select id="findBookByTitle" parameterType="String" resultType="com.zuzex.booker.model.Book">
@@ -49,11 +49,11 @@
         select b.id, b.title, b.date, b.is_read, b.created, b.updated, b.status from books as b
         join books_authors as ba on b.id = ba.book_id
         join authors as a on ba.author_id = a.id
-        when a.id = #{id};
+        where a.id = #{id};
     </select>
 
     <insert id="saveBook" useGeneratedKeys="true">
-        "insert into books (title,date,is_read,created,updated,status)
+        insert into books (title,date,is_read,created,updated,status)
         values(#{title},#{date},#{isRead},#{created},#{updated},#{status});
     </insert>
 

@@ -17,7 +17,7 @@ public class RefreshTokenDao {
         this.sqlSession = sqlSession;
     }
 
-    public Optional<RefreshToken> findRefreshTokenByToken(String token) {
+    public RefreshToken findRefreshTokenByToken(String token) {
         return this.sqlSession.selectOne("findRefreshTokenByToken", token);
     }
 

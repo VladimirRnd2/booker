@@ -2,16 +2,18 @@ package com.zuzex.booker.service.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.zuzex.booker.dto.AuthorResponse;
-import com.zuzex.booker.dto.BookRequest;
-import com.zuzex.booker.dto.BookResponse;
+import com.zuzex.booker.dto.*;
 import com.zuzex.booker.dto.serializer.BookResponseDeserializer;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
 import com.zuzex.booker.model.Status;
+import com.zuzex.booker.model.User;
 import com.zuzex.booker.repository.dao.AuthorDao;
+import com.zuzex.booker.repository.dao.BookAuthorDao;
 import com.zuzex.booker.repository.dao.BookDao;
+import com.zuzex.booker.repository.dao.UserBookDao;
 import com.zuzex.booker.security.jwt.JwtFilter;
+import com.zuzex.booker.security.jwt.JwtProv;
 import com.zuzex.booker.service.BookService;
 import com.zuzex.booker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -33,25 +34,32 @@ public class BookServiceImpl implements BookService {
 
     private BookDao bookDao;
     private AuthorDao authorDao;
+    private UserBookDao userBookDao;
+    private BookAuthorDao bookAuthorDao;
     private RestTemplate restTemplate;
     private UserService userService;
+    private JwtProv jwtProvider;
     private JwtFilter jwtFilter;
 
 
     @Autowired
-    public BookServiceImpl(BookDao bookDao, AuthorDao authorDao, RestTemplate restTemplate, UserService userService, JwtFilter jwtFilter) {
+    public BookServiceImpl(BookDao bookDao, AuthorDao authorDao, UserBookDao userBookDao, BookAuthorDao bookAuthorDao, RestTemplate restTemplate, UserService userService, JwtFilter jwtFilter, JwtProv jwtProvider, JwtFilter jwtFilter1) {
         this.bookDao = bookDao;
         this.authorDao = authorDao;
+        this.userBookDao = userBookDao;
+        this.bookAuthorDao = bookAuthorDao;
         this.restTemplate = restTemplate;
         this.userService = userService;
-        this.jwtFilter = jwtFilter;
+        this.jwtProvider = jwtProvider;
+        this.jwtFilter = jwtFilter1;
     }
 
     @Override
     public Book getBookById(Long id) {
-        Optional<Book> book = bookDao.findBookById(id);
-        if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
-            return book.get();
+        Book book = bookDao.findBookById(id);
+        if(book != null && book.getStatus() == Status.ACTIVE) {
+            book.setAuthors(authorDao.getAuthorsByBookId(book.getId()));
+            return book;
         }
         else
             throw new RuntimeException("Book with id " + id + " not found");
@@ -59,9 +67,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book getBookByTitle(String title) {
-        Optional<Book> book = bookDao.findBookByTitle(title);
-        if(book.isPresent() && book.get().getStatus() == Status.ACTIVE) {
-            return book.get();
+        Book book = bookDao.findBookByTitle(title);
+        if(book != null && book.getStatus() == Status.ACTIVE) {
+            return book;
         }
         else
             throw new RuntimeException("Book with id " + title + " not found");
@@ -147,10 +155,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book createNewBook(BookResponse bookResponse) {
-        Optional<Book> optionalBook = bookDao.findBookByTitle(bookResponse.getTitle());
+        Book book = bookDao.findBookByTitle(bookResponse.getTitle());
 
-        if(optionalBook.isEmpty()) {
-            Book book = new Book();
+        if(book == null) {
+            book = new Book();
             book.setTitle(bookResponse.getTitle());
             book.setDate(bookResponse.getDate());
             book.setAuthors(getAllAuthorsFromAuthorResponse(bookResponse));
@@ -158,28 +166,42 @@ public class BookServiceImpl implements BookService {
             book.setCreated(new Date());
             book.setUpdated(new Date());
             book.setStatus(Status.ACTIVE);
-
             bookDao.saveBook(book);
-            userService.addBookToUser(book, bookResponse.getToken());
+
+            Book resultBook = bookDao.findBookByTitle(bookResponse.getTitle());
+            List<Author> authorList = new ArrayList<>();
+            for (AuthorResponse authorResponse : bookResponse.getAuthors()){
+                authorList.add(authorDao.findAuthorByName(authorResponse.getName()));
+            }
+            for(Author author : authorList) {
+                bookAuthorDao.addAuthorToBook(new BookAuthorRequest(resultBook.getId(),author.getId()));
+            }
+            User user = userService.findByLogin(jwtProvider.getLoginFromAccessToken(bookResponse.getToken()));
+            userBookDao.addBookToUser(new UserBookRequest(user.getId(),resultBook.getId()));
+
+
+//            userService.addBookToUser(book, bookResponse.getToken());
             return book;
         }
-
-            optionalBook.get().setStatus(Status.ACTIVE);
-            bookDao.saveBook(optionalBook.get());
-            userService.addBookToUser(optionalBook.get(), bookResponse.getToken());
-            return optionalBook.get();
+            User user = userService.findByLogin(jwtProvider.getLoginFromAccessToken(bookResponse.getToken()));
+            userBookDao.addBookToUser(new UserBookRequest(user.getId(),book.getId()));
+            book.setStatus(Status.ACTIVE);
+            bookDao.saveBook(book);
+//            userService.addBookToUser(book, bookResponse.getToken());
+            return book;
     }
 
     @Override
     public List<Book> getBooksByAuthor(Author author) {
+        author.setBooks(bookDao.getBooksByAuthorId(author.getId()));
         return author.getBooks();
     }
 
     @Override
     public Author getAuthorByName(String name) {
-        Optional<Author> optionalAuthor = authorDao.findAuthorByName(name);
-        if(optionalAuthor.isPresent())
-            return optionalAuthor.get();
+        Author optionalAuthor = authorDao.findAuthorByName(name);
+        if(optionalAuthor != null)
+            return optionalAuthor;
         else
             throw new RuntimeException("Author with this name not found");
     }
@@ -191,11 +213,11 @@ public class BookServiceImpl implements BookService {
 //        book.setUpdated(new Date());
 //        bookRepository.save(book);
 
-        Optional<Book> book = bookDao.findBookById(id);
-        if(book.isPresent()) {
-            book.get().setStatus(Status.DELETED);
-            book.get().setUpdated(new Date());
-            bookDao.saveBook(book.get());
+        Book book = bookDao.findBookById(id);
+        if(book != null) {
+            book.setStatus(Status.DELETED);
+            book.setUpdated(new Date());
+            bookDao.saveBook(book);
         }
     }
 
@@ -206,26 +228,27 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Author getAuthorById(Long id) {
-        return authorDao.findAuthorById(id).orElse(null);
+        return authorDao.findAuthorById(id);
     }
 
     private List<Author> getAllAuthorsFromAuthorResponse(BookResponse bookResponse) {
             List<Author> authors = new ArrayList<>();
+            Author author;
             for (AuthorResponse response : bookResponse.getAuthors()) {
-                Optional<Author> optionalAuthor = authorDao.findAuthorByName(response.getName());
-                if(optionalAuthor.isEmpty()) {
-
-                    Author author = new Author();
+                author = authorDao.findAuthorByName(response.getName());
+                if(author == null) {
+                    author = new Author();
                     author.setName(response.getName());
                     author.setCreated(new Date());
                     author.setUpdated(new Date());
+                    author.setBooks(new ArrayList<>());
                     author.setStatus(Status.ACTIVE);
 
                     authors.add(author);
                     authorDao.saveAuthor(author);
                 }
                 else {
-                    authors.add(optionalAuthor.get());
+                    authors.add(author);
                 }
             }
             return authors;

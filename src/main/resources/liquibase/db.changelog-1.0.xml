@@ -37,6 +37,9 @@
             <column name="status" type="varchar(25)">
                 <constraints nullable="false"/>
             </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 

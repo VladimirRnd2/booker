@@ -25,7 +25,10 @@ public class BookResponseDeserializer implements JsonDeserializer<BookResponse> 
             if(obj.has("volumeInfo")) {
                 volumeInfo = obj.get("volumeInfo");
             }
-            JsonObject volumeInfoObj = volumeInfo.getAsJsonObject();
+            JsonObject volumeInfoObj = null;
+            if (volumeInfo != null) {
+                volumeInfoObj = volumeInfo.getAsJsonObject();
+            }
 
             if(volumeInfoObj.has("title")) {
                 bookResponse.setTitle(volumeInfoObj.get("title").getAsString());

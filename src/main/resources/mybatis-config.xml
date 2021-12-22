@@ -9,5 +9,7 @@
     <mapper resource="mapper/RefreshTokenMapper.xml"/>
     <mapper resource="mapper/RoleMapper.xml"/>
     <mapper resource="mapper/UserMapper.xml"/>
+    <mapper resource="mapper/BookAuthorMapper.xml"/>
+    <mapper resource="mapper/UserBookMapper.xml"/>
 </mappers>
 </configuration>

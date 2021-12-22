@@ -15,11 +15,15 @@ public class RoleDao {
         this.sqlSession = sqlSession;
     }
 
-    private Role findRoleById(Long id) {
+    public Role findRoleById(Long id) {
         return this.sqlSession.selectOne("findRoleById", id);
     }
 
     public Role findRoleByName(String name) {
         return this.sqlSession.selectOne("findRoleByName", name);
+    }
+
+    public Role findRoleByUserId(Long id) {
+        return this.sqlSession.selectOne("findRoleByUserId", id);
     }
 }

@@ -15,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @Transactional
 public class AuthServiceImpl implements AuthService {
@@ -62,9 +60,9 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refresh(AuthRefreshRequest request) {
         if(jwtProvider.validateRefreshToken(request.getToken())) {
             String login = jwtProvider.getLoginFromRefreshToken(request.getToken());
-            Optional<RefreshToken> optionalRefreshToken = refreshTokenDao.findRefreshTokenByToken(request.getToken());
-            if (optionalRefreshToken.isPresent()) {
-                String saveRefreshToken = optionalRefreshToken.get().getToken();
+            RefreshToken optionalRefreshToken = refreshTokenDao.findRefreshTokenByToken(request.getToken());
+            if (optionalRefreshToken != null) {
+                String saveRefreshToken = optionalRefreshToken.getToken();
                 if(saveRefreshToken != null && saveRefreshToken.equals(request.getToken())) {
                     User user = userService.findByLogin(login);
                     String accessToken = jwtProvider.generateAccessToken(login);
