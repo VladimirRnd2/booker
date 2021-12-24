@@ -5,7 +5,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 @Mapper
 public interface BookMapper {
@@ -18,5 +17,5 @@ public interface BookMapper {
     List<Book> findByDate(@Param("date") String date);
     List<Book> getBooksByUserId(@Param("id") Long id);
     List<Book> getBooksByAuthorId(@Param("id") Long id);
-    void saveBook(Book book);
+    Long saveBook(Book book);
 }

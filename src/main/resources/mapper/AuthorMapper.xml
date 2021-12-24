@@ -33,6 +33,6 @@
     </select>
 
     <insert id="saveAuthor" useGeneratedKeys="true">
-        insert into authors (name,created,updated,status) values (#{name}, #{created}, #{updated}, #{status});
+        insert into authors (name,created,updated,status) values (#{name}, #{created}, #{updated}, #{status}) returning id;
     </insert>
 </mapper>

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class BookDao {
@@ -46,8 +45,7 @@ public class BookDao {
         return this.sqlSession.selectOne("findBookByTitle", title);
     }
 
-    public Book saveBook(Book book) {
-        this.sqlSession.insert("saveBook", book);
-        return book;
+    public long saveBook(Book book) {
+        return this.sqlSession.insert("saveBook", book);
     }
 }

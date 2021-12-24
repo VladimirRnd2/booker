@@ -34,9 +34,8 @@ public class UserDao {
         return this.sqlSession.selectOne("findUserByLogin", login);
     }
 
-    public User saveUser(User user) {
-        this.sqlSession.insert("saveUser", user);
-        return user;
+    public long saveUser(User user) {
+        return this.sqlSession.insert("saveUser", user);
     }
 
     public void deleteUserById(Long id) {

@@ -14,7 +14,7 @@ public interface UserMapper {
     List<User> getUsersByBookId(@Param("id") Long id);
     User findUserById(@Param("id") Long id);
     User findUserByLogin(@Param("login") String login);
-    void saveUser(User user);
+    Long saveUser(User user);
     void deleteUserById(@Param("id") Long id);
 
 }

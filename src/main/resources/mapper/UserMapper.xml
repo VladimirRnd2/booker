@@ -44,7 +44,7 @@
 
     <insert id="saveUser" useGeneratedKeys="true">
         insert into users (login,password,first_name,last_name,created,updated,status,role_id)
-        values(#{login},#{password},#{firstName},#{lastName},#{created},#{updated},#{status},#{role.id});
+        values(#{login},#{password},#{firstName},#{lastName},#{created},#{updated},#{status},#{role.id}) returning id;
     </insert>
 
     <delete id="deleteUserById" parameterType="Long">

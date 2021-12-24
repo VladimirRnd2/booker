@@ -13,7 +13,7 @@ public interface AuthorMapper {
     List<Author> getAuthorsByBookId(@Param("id") Long id);
     Author findAuthorById(@Param("id") Long id);
     Author findAuthorByName(@Param("name") String name);
-    void saveAuthor(Author author);
+    Long saveAuthor(Author author);
 
 
 }

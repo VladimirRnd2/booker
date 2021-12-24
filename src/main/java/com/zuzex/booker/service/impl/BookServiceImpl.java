@@ -32,14 +32,14 @@ public class BookServiceImpl implements BookService {
 
     private static final String BASE_URL = "https://www.googleapis.com/books/v1/volumes?q=";
 
-    private BookDao bookDao;
-    private AuthorDao authorDao;
-    private UserBookDao userBookDao;
-    private BookAuthorDao bookAuthorDao;
-    private RestTemplate restTemplate;
-    private UserService userService;
-    private JwtProv jwtProvider;
-    private JwtFilter jwtFilter;
+    private final BookDao bookDao;
+    private final AuthorDao authorDao;
+    private final UserBookDao userBookDao;
+    private final BookAuthorDao bookAuthorDao;
+    private final RestTemplate restTemplate;
+    private final UserService userService;
+    private final JwtProv jwtProvider;
+    private final JwtFilter jwtFilter;
 
 
     @Autowired
@@ -166,29 +166,29 @@ public class BookServiceImpl implements BookService {
             book.setCreated(new Date());
             book.setUpdated(new Date());
             book.setStatus(Status.ACTIVE);
-            bookDao.saveBook(book);
+            Long bookId = bookDao.saveBook(book);
 
-            Book resultBook = bookDao.findBookByTitle(bookResponse.getTitle());
             List<Author> authorList = new ArrayList<>();
             for (AuthorResponse authorResponse : bookResponse.getAuthors()){
                 authorList.add(authorDao.findAuthorByName(authorResponse.getName()));
             }
             for(Author author : authorList) {
-                bookAuthorDao.addAuthorToBook(new BookAuthorRequest(resultBook.getId(),author.getId()));
+                bookAuthorDao.addAuthorToBook(new BookAuthorRequest(bookId,author.getId()));
             }
             User user = userService.findByLogin(jwtProvider.getLoginFromAccessToken(bookResponse.getToken()));
-            userBookDao.addBookToUser(new UserBookRequest(user.getId(),resultBook.getId()));
+            userBookDao.addBookToUser(new UserBookRequest(user.getId(),bookId));
 
-
+            return book;
+//            userService.addBookToUser(book, bookResponse.getToken());
+        } else {
+            User user = userService.findByLogin(jwtProvider.getLoginFromAccessToken(bookResponse.getToken()));
+            userBookDao.addBookToUser(new UserBookRequest(user.getId(), book.getId()));
+            book.setAuthors(getAllAuthorsFromAuthorResponse(bookResponse));
+//            book.setStatus(Status.ACTIVE);
+//            bookDao.saveBook(book);
 //            userService.addBookToUser(book, bookResponse.getToken());
             return book;
         }
-            User user = userService.findByLogin(jwtProvider.getLoginFromAccessToken(bookResponse.getToken()));
-            userBookDao.addBookToUser(new UserBookRequest(user.getId(),book.getId()));
-            book.setStatus(Status.ACTIVE);
-            bookDao.saveBook(book);
-//            userService.addBookToUser(book, bookResponse.getToken());
-            return book;
     }
 
     @Override

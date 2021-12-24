@@ -33,8 +33,7 @@ public class AuthorDao {
         return this.sqlSession.selectOne("findAuthorByName", name);
     }
 
-    public Author saveAuthor(Author author) {
-        this.sqlSession.insert("saveAuthor", author);
-        return author;
+    public long saveAuthor(Author author) {
+        return this.sqlSession.insert("saveAuthor", author);
     }
 }

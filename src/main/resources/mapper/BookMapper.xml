@@ -54,7 +54,7 @@
 
     <insert id="saveBook" useGeneratedKeys="true">
         insert into books (title,date,is_read,created,updated,status)
-        values(#{title},#{date},#{isRead},#{created},#{updated},#{status});
+        values(#{title},#{date},#{isRead},#{created},#{updated},#{status}) returning id;
     </insert>
 
 </mapper>
