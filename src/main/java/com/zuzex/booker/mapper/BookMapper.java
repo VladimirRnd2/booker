@@ -18,4 +18,7 @@ public interface BookMapper {
     List<Book> getBooksByUserId(@Param("id") Long id);
     List<Book> getBooksByAuthorId(@Param("id") Long id);
     Long saveBook(Book book);
+    List<Long> getAllBooksId();
+    long getIdInBooks(@Param("row") long row);
+    Long getCountBooks();
 }

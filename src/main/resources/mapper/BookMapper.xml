@@ -6,7 +6,7 @@
 <mapper namespace="com.zuzex.booker.mapper.BookMapper">
     <resultMap id="bookResultMap" type="com.zuzex.booker.model.Book">
         <id property="id" column="id"/>
-        <result property="title" column="tile"/>
+        <result property="title" column="title"/>
         <result property="date" column="date"/>
         <result property="isRead" column="is_read"/>
         <result property="created" column="created"/>
@@ -18,11 +18,11 @@
                     column="id" select="com.zuzex.booker.mapper.AuthorMapper.getAuthorsByBookId"/>
     </resultMap>
 
-    <select id="findBookById" parameterType="Long" resultType="com.zuzex.booker.model.Book">
+    <select id="findBookById" parameterType="Long" resultMap="bookResultMap">
         select * from books where id=#{id};
     </select>
 
-    <select id="findBookByTitle" parameterType="String" resultType="com.zuzex.booker.model.Book">
+    <select id="findBookByTitle" parameterType="String" resultMap="bookResultMap">
         select * from books where title =#{title};
     </select>
 
@@ -52,9 +52,21 @@
         where a.id = #{id};
     </select>
 
+    <select id="getAllBooksId" resultType="java.lang.Long">
+        select id from books;
+    </select>
+
+    <select id="getIdInBooks" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select id from books order by id limit 1 offset #{row-1};
+    </select>
+
+    <select id="getCountBooks" resultType="java.lang.Long">
+        select count(*) from books;
+    </select>
+
     <insert id="saveBook" useGeneratedKeys="true">
         insert into books (title,date,is_read,created,updated,status)
-        values(#{title},#{date},#{isRead},#{created},#{updated},#{status}) returning id;
+        values(#{title},#{date},#{isRead},#{created},#{updated},#{status});
     </insert>
 
 </mapper>

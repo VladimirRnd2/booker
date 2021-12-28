@@ -48,4 +48,17 @@ public class BookDao {
     public long saveBook(Book book) {
         return this.sqlSession.insert("saveBook", book);
     }
+
+    public List<Long> getAllBooksId() {
+        return this.sqlSession.selectList("getAllBooksId");
+    }
+
+    public Long getIdInBooks (long row) {
+        return this.sqlSession.selectOne("getIdInBooks", row);
+    }
+    public Long getCountBooks() {
+        return this.sqlSession.selectOne("getCountBooks");
+    }
+
+
 }

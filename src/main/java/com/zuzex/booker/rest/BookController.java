@@ -5,7 +5,6 @@ import com.zuzex.booker.dto.BookRequest;
 import com.zuzex.booker.dto.BookResponse;
 import com.zuzex.booker.model.Author;
 import com.zuzex.booker.model.Book;
-import com.zuzex.booker.security.jwt.JwtFilter;
 import com.zuzex.booker.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -22,9 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Transactional
@@ -72,19 +72,34 @@ public class BookServiceImpl implements BookService {
             return book;
         }
         else
-            throw new RuntimeException("Book with id " + title + " not found");
+            throw new RuntimeException("Book with title " + title + " not found");
     }
-
+// Здесь я должен делать на каждую сущность по отдельному потоку, используя findBookById(Long id)
     @Override
     public List<Book> getAllBooks() {
-        List<Book> bookList = bookDao.findAllBooks();
-        List<Book> resultList = new ArrayList<>();
-
-        for (Book book : bookList) {
-            if(book.getStatus() == Status.ACTIVE)
-                resultList.add(book);
+//        List<Book> bookList = bookDao.findAllBooks();
+//        List<Book> resultList = new ArrayList<>();
+//
+//        for (Book book : bookList) {
+//            if(book.getStatus() == Status.ACTIVE)
+//                resultList.add(book);
+//        }
+//        return resultList;
+        List<Book> books = new ArrayList<>();
+        Long count = bookDao.getCountBooks();
+        ExecutorService executorService = Executors.newFixedThreadPool(20);
+        try {
+            executorService.submit(() -> {
+                for (int id = 0; id < count ; id++) {
+                    books.add(bookDao.findBookById(bookDao.getIdInBooks(id)));
+                }
+            }).get();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return resultList;
+
+        executorService.shutdown();
+        return books;
     }
 
     @Override
@@ -166,7 +181,8 @@ public class BookServiceImpl implements BookService {
             book.setCreated(new Date());
             book.setUpdated(new Date());
             book.setStatus(Status.ACTIVE);
-            Long bookId = bookDao.saveBook(book);
+            bookDao.saveBook(book);
+            Long bookId = bookDao.findBookByTitle(bookResponse.getTitle()).getId();
 
             List<Author> authorList = new ArrayList<>();
             for (AuthorResponse authorResponse : bookResponse.getAuthors()){
